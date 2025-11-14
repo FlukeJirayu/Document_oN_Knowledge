@@ -1,0 +1,149 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(15 18% 12%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: oklch(0.25 0.02 270);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: oklch(0.25 0.02 270);
+  --primary: hsl(350 70% 42%);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: hsl(10 12% 94%);
+  --secondary-foreground: oklch(0.25 0.02 270);
+  --muted: hsl(10 12% 94%);
+  --muted-foreground: oklch(0.55 0.01 270);
+  --accent: hsl(15 35% 88%);
+  --accent-foreground: oklch(1 0 0);
+  --destructive: hsl(0 84.2% 60.2%);
+  --destructive-foreground: oklch(1 0 0);
+  --border: hsl(12 18% 89%);
+  --input: hsl(12 18% 89%);
+  --ring: hsl(350 70% 42%);
+  --chart-1: hsl(350 70% 42%);
+  --chart-2: hsl(12 68% 58%);
+  --chart-3: hsl(25 75% 65%);
+  --chart-4: hsl(340 85% 62%);
+  --chart-5: hsl(325 72% 55%);
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.75 0.15 285);
+  --primary-foreground: oklch(0.145 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.68 0.18 290);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.75 0.15 285);
+  --chart-1: oklch(0.68 0.18 290);
+  --chart-2: oklch(0.75 0.15 285);
+  --chart-3: oklch(0.82 0.12 280);
+  --chart-4: oklch(0.88 0.09 275);
+  --chart-5: oklch(0.93 0.06 270);
+}
+
+@theme {
+  --font-sans: 'Geist', 'Geist Fallback';
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+/* Add animation keyframes for UI components */
+@layer utilities {
+  @keyframes enter {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  @keyframes exit {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+  }
+  
+  .animate-in {
+    animation: enter 200ms ease-out;
+  }
+  
+  .animate-out {
+    animation: exit 200ms ease-in;
+  }
+  
+  .fade-in-0 {
+    opacity: 1;
+  }
+  
+  .fade-out-0 {
+    opacity: 0;
+  }
+  
+  .zoom-in-95 {
+    transform: scale(1);
+  }
+  
+  .zoom-out-95 {
+    transform: scale(0.95);
+  }
+}
