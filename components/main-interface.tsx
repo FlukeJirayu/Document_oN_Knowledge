@@ -1,11 +1,24 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { ChevronLeft, ChevronRight, Plus, Search, Send, ZoomIn, ZoomOut, FileText, Eye, EyeOff, Loader2, Sparkles, Link2, Youtube, FileType, GripVertical, MessageSquare, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Search, Send, ZoomIn, ZoomOut, FileText, Eye, EyeOff, Loader2, Sparkles, Link2, Youtube, FileType, GripVertical, MessageSquare, X, MoreVertical, Trash2, Edit } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import type { Document } from '@/app/page'
 
 interface ChatMessage {
@@ -21,9 +34,11 @@ interface MainInterfaceProps {
   allDocuments: Document[]
   onBack: () => void
   onSelectDocument: (id: string) => void
+  onDeleteDocument?: (id: string) => void
+  onRenameDocument?: (id: string, newName: string) => void
 }
 
-export function MainInterface({ document, allDocuments, onBack, onSelectDocument }: MainInterfaceProps) {
+export function MainInterface({ document, allDocuments, onBack, onSelectDocument, onDeleteDocument, onRenameDocument }: MainInterfaceProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [zoom, setZoom] = useState(100)
   const [message, setMessage] = useState('')
@@ -40,6 +55,10 @@ export function MainInterface({ document, allDocuments, onBack, onSelectDocument
   const resizeRef = useRef<HTMLDivElement>(null)
   const chatScrollRef = useRef<HTMLDivElement>(null)
   const totalPages = 15
+  const [activeMenuDocId, setActiveMenuDocId] = useState<string | null>(null)
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false)
+  const [renamingDocId, setRenamingDocId] = useState<string | null>(null)
+  const [newDocumentName, setNewDocumentName] = useState('')
 
   useEffect(() => {
     if (document.type === 'file' && document.file?.type === 'application/pdf') {
@@ -186,6 +205,29 @@ export function MainInterface({ document, allDocuments, onBack, onSelectDocument
     onSelectDocument(docId)
   }
 
+  const handleDeleteDocument = (docId: string) => {
+    if (onDeleteDocument) {
+      onDeleteDocument(docId)
+    }
+    setActiveMenuDocId(null)
+  }
+
+  const handleOpenRenameDialog = (docId: string, currentName: string) => {
+    setRenamingDocId(docId)
+    setNewDocumentName(currentName)
+    setRenameDialogOpen(true)
+    setActiveMenuDocId(null)
+  }
+
+  const handleConfirmRename = () => {
+    if (renamingDocId && newDocumentName.trim() && onRenameDocument) {
+      onRenameDocument(renamingDocId, newDocumentName.trim())
+    }
+    setRenameDialogOpen(false)
+    setRenamingDocId(null)
+    setNewDocumentName('')
+  }
+
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       {sidebarOpen && (
@@ -255,40 +297,88 @@ export function MainInterface({ document, allDocuments, onBack, onSelectDocument
                             ? 'bg-primary/5 border-primary hover:bg-primary/10 shadow-sm' 
                             : 'hover:bg-accent/5 border-transparent'
                         }`}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          e.preventDefault()
-                          handleDocumentClick(doc.id)
-                        }}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            handleDocumentClick(doc.id)
-                          }
-                        }}
                       >
-                        <div className="flex items-start gap-2.5">
-                          <div className={`rounded-lg p-2 shrink-0 transition-colors ${
-                            isSelected
-                              ? 'bg-primary/15' 
-                              : 'bg-primary/10'
-                          }`}>
-                            <Icon className="w-4 h-4 text-primary" />
+                        <div className="flex items-start gap-2 w-full">
+                          <div 
+                            className="flex-1 flex items-start gap-2.5 min-w-0"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              e.preventDefault()
+                              handleDocumentClick(doc.id)
+                            }}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleDocumentClick(doc.id)
+                              }
+                            }}
+                          >
+                            <div className={`rounded-lg p-2 shrink-0 transition-colors ${
+                              isSelected
+                                ? 'bg-primary/15' 
+                                : 'bg-primary/10'
+                            }`}>
+                              <Icon className="w-4 h-4 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0 overflow-hidden">
+                              <h3 
+                                className="font-medium text-sm text-foreground mb-0.5 leading-tight line-clamp-2" 
+                                title={doc.name}
+                              >
+                                {doc.name}
+                              </h3>
+                              <p className="text-xs text-muted-foreground leading-tight truncate">
+                                {formatRelativeTime(doc.uploadedAt)}
+                              </p>
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 
-                              className="font-medium text-sm text-foreground mb-0.5 leading-tight line-clamp-2" 
-                              title={doc.name}
-                            >
-                              {doc.name}
-                            </h3>
-                            <p className="text-xs text-muted-foreground leading-tight truncate">
-                              {formatRelativeTime(doc.uploadedAt)}
-                            </p>
-                          </div>
+                          
+                          <Popover 
+                            open={activeMenuDocId === doc.id}
+                            onOpenChange={(open) => setActiveMenuDocId(open ? doc.id : null)}
+                          >
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 shrink-0 hover:bg-accent"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                }}
+                              >
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-56 p-2" align="end">
+                              <div className="space-y-1">
+                                <Button
+                                  variant="ghost"
+                                  className="w-full justify-start text-sm hover:bg-accent"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleOpenRenameDialog(doc.id, doc.name)
+                                  }}
+                                >
+                                  <Edit className="w-4 h-4 mr-2" />
+                                  เปลี่ยนชื่อแหล่งข้อมูล
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  className="w-full justify-start text-sm text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleDeleteDocument(doc.id)
+                                  }}
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  ลบแหล่งข้อมูลออก
+                                </Button>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
                         </div>
                       </Card>
                     )
@@ -620,6 +710,42 @@ export function MainInterface({ document, allDocuments, onBack, onSelectDocument
           </div>
         )}
       </div>
+
+      <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>เปลี่ยนชื่อแหล่งข้อมูล</DialogTitle>
+            <DialogDescription>
+              กรุณากรอกชื่อใหม่สำหรับเอกสารนี้
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              value={newDocumentName}
+              onChange={(e) => setNewDocumentName(e.target.value)}
+              placeholder="ชื่อเอกสาร"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  handleConfirmRename()
+                }
+              }}
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenameDialogOpen(false)}>
+              ยกเลิก
+            </Button>
+            <Button 
+              onClick={handleConfirmRename}
+              disabled={!newDocumentName.trim()}
+            >
+              บันทึก
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

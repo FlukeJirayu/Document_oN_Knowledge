@@ -31,6 +31,28 @@ export default function Home() {
     setSelectedDocId(newDoc.id)
   }
 
+  const handleDeleteDocument = (id: string) => {
+    setDocuments(prev => prev.filter(doc => doc.id !== id))
+    
+    // If deleting current document, go back to add page or select another doc
+    if (selectedDocId === id) {
+      const remainingDocs = documents.filter(doc => doc.id !== id)
+      if (remainingDocs.length > 0) {
+        setSelectedDocId(remainingDocs[0].id)
+      } else {
+        setSelectedDocId(null)
+      }
+    }
+  }
+
+  const handleRenameDocument = (id: string, newName: string) => {
+    setDocuments(prev => 
+      prev.map(doc => 
+        doc.id === id ? { ...doc, name: newName } : doc
+      )
+    )
+  }
+
   const selectedDoc = documents.find(doc => doc.id === selectedDocId)
 
   return (
@@ -41,6 +63,8 @@ export default function Home() {
           allDocuments={documents}
           onBack={() => setSelectedDocId(null)}
           onSelectDocument={(id) => setSelectedDocId(id)}
+          onDeleteDocument={handleDeleteDocument}
+          onRenameDocument={handleRenameDocument}
         />
       ) : (
         <AddSourcePage onSourceAdd={handleSourceAdd} />
